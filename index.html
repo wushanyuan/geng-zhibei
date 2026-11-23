@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="梗指北：网络热梗识别工具。粘贴一段文字，自动识别规范热梗与不良烂梗，命中烂梗即提示“规范用语，从你我做起！”。">
+<meta name="theme-color" content="#f7f4ec">
+<meta property="og:type" content="website">
+<meta property="og:title" content="梗指北 · 网络热梗识别工具">
+<meta property="og:description" content="粘贴一段文字，自动识别规范热梗与不良烂梗，命中烂梗即提示“规范用语，从你我做起！”。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+<title>梗指北 · 网络热梗识别工具</title>
+<style>
+/* ===== 基础变量 ===== */
+:root{
+  --paper:#f7f4ec;
+  --paper-2:#fffdf7;
+  --ink:#1d1c1a;
+  --ink-soft:#5d594f;
+  --line:#ded7c6;
+  --red:#cf3f2f;
+  --red-soft:#fdebe7;
+  --green:#2d6a5f;
+  --green-soft:#e6f0ed;
+  --blue:#2b4a8b;
+  --shadow:0 10px 30px rgba(29,28,26,.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 12% 0%, #fff9ef 0%, transparent 45%),
+    radial-gradient(circle at 88% 8%, #efeee6 0%, transparent 40%),
+    var(--paper);
+  color:var(--ink);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.65;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+
+/* ===== 顶部大标识 ===== */
+.hero{position:relative;padding:64px 0 40px;text-align:center;overflow:hidden;}
+.hero:before{
+  content:"";position:absolute;inset:0;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:38px 38px;opacity:.35;
+  mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 72%);
+  -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 72%);
+}
+.hero-inner{position:relative;}
+.logo{display:inline-flex;align-items:center;gap:16px;}
+.compass{
+  width:clamp(46px,7vw,74px);height:clamp(46px,7vw,74px);flex:none;
+  display:grid;place-items:center;border-radius:50%;
+  border:2px solid var(--ink);background:var(--paper-2);
+  box-shadow:6px 6px 0 rgba(29,28,26,.12);
+}
+.compass svg{width:76%;height:76%;}
+.brand{
+  font-size:clamp(52px,11vw,116px);font-weight:900;letter-spacing:.06em;
+  line-height:1;margin:0;
+  font-family:"Songti SC","STSong","Noto Serif SC",serif;
+}
+.brand span:nth-child(2){color:var(--red);}
+.slogan{
+  margin:18px 0 0;font-size:clamp(13px,1.6vw,17px);color:var(--ink-soft);letter-spacing:.14em;
+}
+.stats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:26px;}
+.stat{
+  background:var(--paper-2);border:1px solid var(--line);border-radius:2px;
+  padding:10px 22px;min-width:112px;box-shadow:4px 4px 0 rgba(29,28,26,.06);
+}
+.stat b{display:block;font-size:22px;line-height:1.2;letter-spacing:.02em;}
+.stat span{font-size:12px;color:var(--ink-soft);letter-spacing:.08em;}
+.stat.bad b{color:var(--red);}
+
+/* ===== 通用卡片 ===== */
+.card{
+  background:var(--paper-2);border:1px solid var(--line);border-radius:4px;
+  box-shadow:var(--shadow);padding:clamp(20px,3vw,34px);
+}
+.sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+.sec-head h2{
+  font-size:clamp(20px,2.6vw,26px);margin:0;font-weight:800;letter-spacing:.04em;
+  border-left:5px solid var(--red);padding-left:12px;
+}
+.sec-head .hint{font-size:12.5px;color:var(--ink-soft);letter-spacing:.04em;}
+
+/* ===== 输入区 ===== */
+.tool{margin-top:34px;}
+.field{position:relative;margin-top:16px;}
+textarea{
+  width:100%;min-height:132px;resize:vertical;padding:16px 18px;
+  border:1px solid var(--line);border-radius:3px;background:#fff;
+  font:inherit;font-size:15px;color:var(--ink);outline:none;line-height:1.8;
+  transition:border-color .2s,box-shadow .2s;
+}
+textarea:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(207,63,47,.12);}
+textarea::placeholder{color:#a9a292;}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center;}
+.btn{
+  border:1.5px solid var(--ink);background:var(--ink);color:#fff;
+  padding:11px 26px;border-radius:2px;font:inherit;font-size:15px;font-weight:700;
+  letter-spacing:.06em;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s;
+  box-shadow:4px 4px 0 rgba(29,28,26,.16);
+}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 rgba(29,28,26,.2);}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 rgba(29,28,26,.18);}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);box-shadow:none;font-weight:500;}
+.btn.ghost:hover{background:#fff;border-color:var(--ink);}
+.tip{font-size:12px;color:var(--ink-soft);letter-spacing:.04em;}
+
+/* ===== 识别结果 ===== */
+.result{margin-top:26px;display:none;}
+.result.on{display:block;animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.sentence{
+  border-left:4px solid var(--line);background:#fff;padding:14px 16px;border-radius:2px;
+  font-size:15px;line-height:1.9;word-break:break-word;
+}
+.mk{padding:1px 3px;border-radius:2px;font-weight:700;}
+.mk.bad{background:var(--red-soft);color:var(--red);border-bottom:2px solid var(--red);}
+.mk.good{background:var(--green-soft);color:var(--green);border-bottom:2px solid var(--green);}
+.sum-bar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 4px;}
+.chip{
+  font-size:12.5px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
+  background:#fff;letter-spacing:.04em;
+}
+.chip.bad{color:var(--red);border-color:#efc1b9;background:var(--red-soft);}
+.chip.good{color:var(--green);border-color:#bcd6cf;background:var(--green-soft);}
+.hits{display:grid;gap:12px;margin-top:14px;}
+.hit{
+  border:1px solid var(--line);border-left-width:5px;border-radius:2px;
+  background:#fff;padding:13px 16px;
+}
+.hit.bad{border-left-color:var(--red);}
+.hit.good{border-left-color:var(--green);}
+.hit-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hit-top h3{margin:0;font-size:17px;letter-spacing:.03em;}
+.tag{font-size:11px;padding:1px 8px;border-radius:2px;letter-spacing:.06em;font-weight:700;}
+.tag.bad{background:var(--red);color:#fff;}
+.tag.good{background:var(--green);color:#fff;}
+.tag.lv{background:#efeadd;color:var(--ink-soft);font-weight:500;}
+.hit p{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft);}
+.hit p b{color:var(--ink);font-weight:600;}
+.hit .eg{font-size:13px;color:#8b8474;}
+.warnbox{
+  margin-top:14px;padding:12px 16px;border:1px dashed #e0a79e;background:#fff6f4;
+  font-size:13.5px;color:#8d3529;border-radius:2px;
+}
+.empty{
+  margin-top:20px;padding:22px;text-align:center;border:1px dashed var(--line);
+  color:var(--ink-soft);font-size:14px;background:#fff;border-radius:2px;
+}
+
+/* ===== 词库 ===== */
+.lib{margin-top:44px;}
+.tabs{display:flex;gap:8px;margin:16px 0 14px;flex-wrap:wrap;}
+.tab{
+  border:1px solid var(--line);background:#fff;padding:8px 18px;border-radius:2px;
+  font:inherit;font-size:14px;cursor:pointer;letter-spacing:.04em;color:var(--ink-soft);
+}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:700;}
+.tab.on.bad{background:var(--red);border-color:var(--red);}
+.searchbar{position:relative;margin-bottom:16px;}
+.searchbar input{
+  width:100%;padding:11px 16px;border:1px solid var(--line);border-radius:2px;background:#fff;
+  font:inherit;font-size:14px;outline:none;
+}
+.searchbar input:focus{border-color:var(--ink);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px;}
+.item{
+  background:#fff;border:1px solid var(--line);border-top:3px solid var(--green);
+  padding:13px 15px;border-radius:2px;transition:box-shadow .15s,transform .15s;
+}
+.item:hover{box-shadow:6px 6px 0 rgba(29,28,26,.07);transform:translateY(-2px);}
+.item.isbad{border-top-color:var(--red);}
+.item .w{font-weight:800;font-size:16px;letter-spacing:.02em;}
+.item .meta{font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin:3px 0 8px;}
+.item .meta i{font-style:normal;color:var(--ink);}
+.item .d{font-size:13.5px;color:var(--ink-soft);line-height:1.7;}
+.item .e{font-size:12.5px;color:#9a9282;margin-top:6px;}
+.count{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;letter-spacing:.04em;}
+
+/* ===== 弹窗 ===== */
+.mask{
+  position:fixed;inset:0;background:rgba(24,22,19,.55);backdrop-filter:blur(3px);
+  display:none;place-items:center;padding:20px;z-index:60;
+}
+.mask.on{display:grid;animation:fade .2s ease;}
+.alarm{
+  width:min(520px,94vw);background:var(--paper-2);border:3px solid var(--red);
+  border-radius:3px;box-shadow:0 24px 60px rgba(0,0,0,.35);padding:34px 26px 26px;text-align:center;
+  position:relative;animation:pop .32s cubic-bezier(.2,1.6,.4,1);
+}
+@keyframes pop{0%{transform:scale(.86) rotate(-1deg);opacity:0;}100%{transform:none;opacity:1;}}
+.alarm .bell{font-size:34px;line-height:1;margin-bottom:10px;}
+.alarm h2{
+  font-size:clamp(22px,4.6vw,31px);margin:0;color:var(--red);letter-spacing:.08em;
+  font-family:"Songti SC","STSong","Noto Serif SC",serif;font-weight:900;
+}
+.alarm .sub{font-size:13px;color:var(--ink-soft);margin-top:10px;letter-spacing:.04em;}
+.alarm .list{
+  text-align:left;margin:18px 0 4px;background:#fff;border:1px solid #efd6d1;
+  max-height:200px;overflow:auto;padding:10px 14px;font-size:13px;color:#7c3027;
+}
+.alarm .list div{padding:3px 0;border-bottom:1px dashed #f3e2de;}
+.alarm .list div:last-child{border-bottom:none;}
+.alarm .btn{margin-top:18px;}
+.alarm .close{
+  position:absolute;right:10px;top:6px;border:1px solid var(--line);background:#fff;
+  width:30px;height:30px;border-radius:50%;font-size:19px;line-height:1;
+  color:#6b6659;cursor:pointer;padding:0;
+}
+.alarm .close:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+footer{
+  margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12px;color:#9a9282;letter-spacing:.05em;text-align:center;
+}
+@media(max-width:560px){
+  .hero{padding:44px 0 30px;}
+  .logo{gap:10px;}
+  .brand{letter-spacing:.03em;}
+  .stats{gap:8px;}
+  .stat{padding:8px 14px;min-width:96px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部大标识：梗指北 ===== -->
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="logo">
+      <div class="compass">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#1d1c1a" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="none" stroke="#ded7c6" stroke-width="1.5"/>
+          <polygon points="50,14 58,50 50,44 42,50" fill="#cf3f2f"/>
+          <polygon points="50,86 42,50 50,56 58,50" fill="#1d1c1a"/>
+          <circle cx="50" cy="50" r="3.4" fill="#f7f4ec" stroke="#1d1c1a" stroke-width="1.6"/>
+          <text x="50" y="10" text-anchor="middle" font-size="9" fill="#1d1c1a" font-family="serif">N</text>
+        </svg>
+      </div>
+      <h1 class="brand"><span>梗</span><span>指</span><span>北</span></h1>
+    </div>
+    <p class="slogan">网络黑话 · 热梗识别器</p>
+    <div class="stats">
+      <div class="stat"><b id="statGood">0</b><span>收录热梗</span></div>
+      <div class="stat bad"><b id="statBad">0</b><span>拦截烂梗</span></div>
+      <div class="stat"><b id="statBlocked">0</b><span>本次已拦截</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ===== 识别工具 ===== -->
+<section class="tool card">
+  <div class="sec-head">
+    <h2>把话贴进来，先验一遍</h2>
+    <span class="hint">词库比对 · 即输即检</span>
+  </div>
+  <div class="field">
+    <textarea id="input" placeholder="粘贴一段聊天记录、评论或文案，例如：
+“这波操作YYDS，绝绝子！不过评论区有人刷‘没马’‘唐人’，看着真下头。”"></textarea>
+  </div>
+  <div class="row">
+    <button class="btn" id="scan">开始识别</button>
+    <button class="btn ghost" id="demo">来点示例</button>
+    <button class="btn ghost" id="clear">清空</button>
+    <span class="tip">识别结果仅供参考，反讽类词需结合语境判断</span>
+  </div>
+
+  <div class="result" id="result"></div>
+</section>
+
+<!-- ===== 词库 ===== -->
+<section class="lib card">
+  <div class="sec-head">
+    <h2>词库</h2>
+    <span class="hint">规范热梗与不良烂梗，两张表都在里面</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-sheet="good">规范热梗</button>
+    <button class="tab bad" data-sheet="bad">不良烂梗</button>
+  </div>
+  <div class="searchbar"><input id="q" type="search" placeholder="搜索热梗、释义或分类，如：破防 / 诅咒"></div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<footer>
+  梗指北 · 识别依据《网络热梗词库》《网络烂梗词库》两份表格<br>
+  语言是工具，不是武器。规范用语，从你我做起。
+</footer>
+</div>
+
+<!-- ===== 拦截弹窗 ===== -->
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="alarmTitle">
+  <div class="alarm">
+    <button class="close" id="closeAlarm" aria-label="关闭">×</button>
+    <div class="bell">⚠️</div>
+    <h2 id="alarmTitle">规范用语，从你我做起！</h2>
+    <div class="sub" id="alarmSub"></div>
+    <div class="list" id="alarmList"></div>
+    <button class="btn" id="alarmOk">我知道错了，改口</button>
+  </div>
+</div>
+
+<script>
+/* ===== 数据：由表格生成 ===== */
+const GOOD_DATA = [
+{
+"w": "奶龙/奶娃",
+"def": "源于动画IP“奶龙”，软萌可爱向玩梗，多用于卖萌、调侃",
+"lv": "L2",
+"cat": "IP衍生类",
+"eg": "“奶龙又整活了，笑不活了”",
+"k": [
+"奶龙",
+"奶娃"
+]
+},
+{
+"w": "你胆子真是肥嘟嘟的",
+"def": "奶龙动画台词，戏谑地说别人胆子太大",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“你胆子真是肥嘟嘟的，敢在课上睡大觉”",
+"k": [
+"你胆子真是肥嘟嘟的"
+]
+},
+{
+"w": "这饭吃着不烧心",
+"def": "生活化吐槽，形容事情让人膈应、心里不舒服",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“这个排班安排，这饭吃着不烧心”",
+"k": [
+"这饭吃着不烧心"
+]
+},
+{
+"w": "邪修",
+"def": "二次元圈用词，指不走常规套路的玩法或人",
+"lv": "L3",
+"cat": "社交调侃类",
+"eg": "“他这套打法纯属邪修”",
+"k": [
+"邪修"
+]
+},
+{
+"w": "牛来",
+"def": "短视频魔性感叹梗，用来表达惊叹、服气",
+"lv": "L2",
+"cat": "个性表达类",
+"eg": "“牛来！这波操作太强了”",
+"k": [
+"牛来"
+]
+},
+{
+"w": "轻松绷不住",
+"def": "表示情绪扛不住、快要破防了",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“早八连轴转，轻松绷不住了”",
+"k": [
+"轻松绷不住"
+]
+},
+{
+"w": "YYDS",
+"def": "“永远的神”缩写，用于夸奖、惊叹",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“食堂新窗口YYDS”",
+"k": [
+"YYDS",
+"yyds",
+"Yyds"
+]
+},
+{
+"w": "纳尼",
+"def": "日语“なに”谐音，表示惊讶、疑惑",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“纳尼？作业明天就要交？”",
+"k": [
+"纳尼"
+]
+},
+{
+"w": "神之八秒",
+"def": "特定游戏、短视频圈层的名场面梗",
+"lv": "L3",
+"cat": "社交调侃类",
+"eg": "“这段操作就是神之八秒”",
+"k": [
+"神之八秒"
+]
+},
+{
+"w": "嘎嘎滴辣虾",
+"def": "地方味口头梗，形容厉害、带劲",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“这视频嘎嘎滴辣虾”",
+"k": [
+"嘎嘎滴辣虾"
+]
+},
+{
+"w": "三山崩崩m川",
+"def": "小众二创梗，多用于表达被戳中、破防",
+"lv": "L3",
+"cat": "情绪宣泄类",
+"eg": "“三山崩崩m川，看完直接破防”",
+"k": [
+"三山崩崩m川"
+]
+},
+{
+"w": "绷",
+"def": "“绷不住”的简写，指情绪失控、笑到不行",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“看到这条通知我直接绷了”",
+"k": [
+"绷了",
+"绷不住"
+]
+},
+{
+"w": "水灵灵（地）",
+"def": "形容毫不掩饰、明晃晃地做成某事",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“水灵灵地就把作业拖到截止前一小时”",
+"k": [
+"水灵灵地",
+"水灵灵"
+]
+},
+{
+"w": "神了",
+"def": "口语化惊叹，表示太厉害、太离谱",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这集神了，反转了三次”",
+"k": [
+"神了"
+]
+},
+{
+"w": "遥遥领先",
+"def": "夸赞实力突出、优势明显，可正经也可玩梗",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这门课他直接遥遥领先”",
+"k": [
+"遥遥领先"
+]
+},
+{
+"w": "搭子",
+"def": "阶段性陪伴伙伴，如饭搭子、学习搭子",
+"lv": "L1",
+"cat": "社交调侃类",
+"eg": "“下周找个饭搭子一起打卡食堂”",
+"k": [
+"搭子"
+]
+},
+{
+"w": "精神状态良好",
+"def": "反语，实际指濒临崩溃、压力很大",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“连上七天早八，精神状态良好”",
+"k": [
+"精神状态良好"
+]
+},
+{
+"w": "挖呀挖呀挖",
+"def": "源自短视频儿歌，魔性强，多用于轻松整活",
+"lv": "L1",
+"cat": "IP衍生类",
+"eg": "“在小小的花园里挖呀挖呀挖”",
+"k": [
+"挖呀挖呀挖"
+]
+},
+{
+"w": "尊嘟假嘟",
+"def": "“真的假的”软萌变体，表惊讶、求证",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“尊嘟假嘟，你也挂科了？”",
+"k": [
+"尊嘟假嘟"
+]
+},
+{
+"w": "躺平",
+"def": "主动降低竞争欲望，不参与无意义竞争",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“卷不动了，我先躺平”",
+"k": [
+"躺平"
+]
+},
+{
+"w": "内卷",
+"def": "内部无意义的过度竞争",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“这门课太内卷，绩点卷到离谱”",
+"k": [
+"内卷"
+]
+},
+{
+"w": "脆皮大学生",
+"def": "年纪轻但身体毛病多、容易受伤的大学生",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“军训两天就闪了腰，标准脆皮大学生”",
+"k": [
+"脆皮大学生"
+]
+},
+{
+"w": "一键重启",
+"def": "希望糟糕的一天、糟糕的经历重新来过",
+"lv": "L2",
+"cat": "情绪宣泄类",
+"eg": "“今天太糟了，想一键重启”",
+"k": [
+"一键重启"
+]
+},
+{
+"w": "破防",
+"def": "情绪被戳中，瞬间崩溃难受",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“看到绩点排名我直接破防”",
+"k": [
+"破防"
+]
+},
+{
+"w": "退！退！退！",
+"def": "表达抗拒、驱赶烦心事",
+"lv": "L1",
+"cat": "社交调侃类",
+"eg": "“霉运退！退！退！”",
+"k": [
+"退！退！退！"
+]
+},
+{
+"w": "电子木鱼",
+"def": "线上敲木鱼，用来解压、攒功德",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“考前敲敲电子木鱼攒点功德”",
+"k": [
+"电子木鱼"
+]
+},
+{
+"w": "泰裤辣",
+"def": "“太酷啦”谐音，表达赞叹、激动",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这波操作泰裤辣”",
+"k": [
+"泰裤辣"
+]
+},
+{
+"w": "谁懂啊",
+"def": "难以言说内心感受，寻求他人共情",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“谁懂啊，宿舍断电还要赶论文”",
+"k": [
+"谁懂啊"
+]
+},
+{
+"w": "嘴替",
+"def": "替自己说出想说又不好说的话的人",
+"lv": "L1",
+"cat": "社交调侃类",
+"eg": "“你就是我的嘴替”",
+"k": [
+"嘴替"
+]
+},
+{
+"w": "搭子文化",
+"def": "轻量化陪伴社交，按需结伴、不深度绑定",
+"lv": "L2",
+"cat": "个性表达类",
+"eg": "“搭子文化就是各取所需，不欠人情”",
+"k": [
+"搭子文化"
+]
+},
+{
+"w": "算力刺客",
+"def": "AI圈梗，指极度消耗算力的提示词或模型",
+"lv": "L3",
+"cat": "社交调侃类",
+"eg": "“这个提示词是算力刺客，跑一次烧半天额度”",
+"k": [
+"算力刺客"
+]
+},
+{
+"w": "E人/I人",
+"def": "MBTI中外向型、内向型的简称",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“我是纯纯的I人，聚餐超过四个人就想撤”",
+"k": [
+"E人",
+"I人"
+]
+},
+{
+"w": "上链接",
+"def": "看到喜欢的东西，玩梗催促上架购买",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“这件外套好看，上链接！”",
+"k": [
+"上链接"
+]
+},
+{
+"w": "搭子式恋爱",
+"def": "像搭子一样相处的浅度恋爱，不追求长期绑定",
+"lv": "L2",
+"cat": "情绪宣泄类",
+"eg": "“他俩就是搭子式恋爱，谁都不谈未来”",
+"k": [
+"搭子式恋爱"
+]
+},
+{
+"w": "电子榨菜",
+"def": "吃饭时搭配观看的下饭视频、剧集",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“吃饭必须有电子榨菜，不然吃不下”",
+"k": [
+"电子榨菜"
+]
+},
+{
+"w": "班味儿",
+"def": "被工作学习驯化后自带的疲惫麻木气质",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“实习一个月，身上全是班味儿”",
+"k": [
+"班味儿"
+]
+},
+{
+"w": "松弛感",
+"def": "不紧绷、从容、低焦虑的状态",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“她身上有种很舒服的松弛感”",
+"k": [
+"松弛感"
+]
+},
+{
+"w": "含金量还在上升",
+"def": "夸赞事物持续被验证、越来越有价值",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这句老话的含金量还在上升”",
+"k": [
+"含金量还在上升"
+]
+},
+{
+"w": "命运的齿轮开始转动",
+"def": "某个不起眼的瞬间，即将改变后续人生走向",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“提交报名表那天，命运的齿轮开始转动”",
+"k": [
+"命运的齿轮开始转动"
+]
+},
+{
+"w": "显眼包",
+"def": "爱出风头、活泼搞笑、很抢眼的人",
+"lv": "L1",
+"cat": "社交调侃类",
+"eg": "“班里那个显眼包又整活了”",
+"k": [
+"显眼包"
+]
+},
+{
+"w": "主打一个XX",
+"def": "概括自己行为的核心特点，如“主打一个随缘”",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“复习主打一个随缘”",
+"k": [
+"主打一个"
+]
+},
+{
+"w": "Canon Event",
+"def": "蜘蛛侠IP衍生，指人生躲不开的必经节点",
+"lv": "L2",
+"cat": "IP衍生类",
+"eg": "“期末通宵是每个大学生的Canon Event”",
+"k": [
+"Canon Event",
+"canon event"
+]
+},
+{
+"w": "Mewing",
+"def": "网传能改善下颌线的舌位训练，颜值圈层梗",
+"lv": "L3",
+"cat": "社交调侃类",
+"eg": "“他最近天天练Mewing，说能瘦脸”",
+"k": [
+"Mewing",
+"mewing"
+]
+},
+{
+"w": "青梅牛马",
+"def": "“青梅竹马”变体，指同期入职、一起受苦的同事",
+"lv": "L2",
+"cat": "情绪宣泄类",
+"eg": "“我俩是青梅牛马，一起熬了三年加班”",
+"k": [
+"青梅牛马"
+]
+},
+{
+"w": "卡急马",
+"def": "卡点下班、一到点就急着走的打工人",
+"lv": "L2",
+"cat": "情绪宣泄类",
+"eg": "“到点就冲的卡急马说的就是我”",
+"k": [
+"卡急马"
+]
+},
+{
+"w": "养龙虾",
+"def": "折腾、部署AI智能体（Agent）的技术圈梗",
+"lv": "L3",
+"cat": "社交调侃类",
+"eg": "“周末在家养龙虾，折腾我的智能体”",
+"k": [
+"养龙虾"
+]
+},
+{
+"w": "浓人/淡人",
+"def": "浓人：外向热情、情绪外放；淡人：清淡佛系",
+"lv": "L2",
+"cat": "个性表达类",
+"eg": "“她是浓人，我是淡人，凑一块刚好”",
+"k": [
+"浓人",
+"淡人"
+]
+},
+{
+"w": "主理人",
+"def": "对小店、项目负责人的文艺化称呼",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“校门口那家咖啡店的主理人”",
+"k": [
+"主理人"
+]
+},
+{
+"w": "预制XX",
+"def": "形容刻意、流水线式表演，如“预制感动”",
+"lv": "L2",
+"cat": "情绪宣泄类",
+"eg": "“这段庆生视频一看就是预制感动”",
+"k": [
+"预制感动",
+"预制爽文"
+]
+},
+{
+"w": "中式DNA觉醒",
+"def": "中国人刻在骨子里的习惯本能",
+"lv": "L2",
+"cat": "个性表达类",
+"eg": "“看见空地就想种菜，中式DNA觉醒”",
+"k": [
+"中式DNA觉醒"
+]
+},
+{
+"w": "分币不掏",
+"def": "形容几乎不花钱的浪漫或社交",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“这次约会是分币不掏式浪漫，公园散步”",
+"k": [
+"分币不掏"
+]
+},
+{
+"w": "别杀我，我是XX人",
+"def": "地域身份梗，用本地词汇“验身份”",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“别杀我，我是天津人，我给你带煎饼果子”",
+"k": [
+"别杀我"
+]
+},
+{
+"w": "随缘接单",
+"def": "佛系接活，不主动争抢",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这周随缘接单，不接急活”",
+"k": [
+"随缘接单"
+]
+},
+{
+"w": "人间小苦瓜",
+"def": "自嘲经常倒霉、处境很苦",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“我就是人间小苦瓜，挂科又丢饭卡”",
+"k": [
+"人间小苦瓜"
+]
+},
+{
+"w": "好好好",
+"def": "表面附和，暗含无奈、敷衍的反讽",
+"lv": "L1",
+"cat": "社交调侃类",
+"eg": "“好好好，你说什么都对”",
+"k": [
+"好好好"
+]
+},
+{
+"w": "锁死",
+"def": "形容两者搭配极契合，牢牢绑定",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“这对CP我锁死了”",
+"k": [
+"锁死"
+]
+},
+{
+"w": "CPU烧了",
+"def": "信息太多、逻辑太难，脑子转不过来",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“这道高数题看得我CPU烧了”",
+"k": [
+"CPU烧了"
+]
+},
+{
+"w": "挖野菜",
+"def": "影视剧IP衍生，讽刺恋爱脑盲目付出",
+"lv": "L2",
+"cat": "IP衍生类",
+"eg": "“恋爱脑上头，快要去挖野菜了”",
+"k": [
+"挖野菜"
+]
+},
+{
+"w": "我直接吹爆",
+"def": "发自内心强烈夸赞",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“新开的麻辣烫窗口我直接吹爆”",
+"k": [
+"我直接吹爆"
+]
+},
+{
+"w": "发疯文学",
+"def": "用夸张长文宣泄情绪、释放压力",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“deadline前开始写发疯文学”",
+"k": [
+"发疯文学"
+]
+},
+{
+"w": "搭子式学习",
+"def": "只结伴学习、不深度交心的学习关系",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“和搭子式学习的室友一起泡图书馆”",
+"k": [
+"搭子式学习"
+]
+},
+{
+"w": "图一乐",
+"def": "单纯为了好玩，不较真",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“就图一乐，你可别当真”",
+"k": [
+"图一乐"
+]
+},
+{
+"w": "小黑子",
+"def": "特定IP衍生，指暗中调侃、玩梗的人",
+"lv": "L2",
+"cat": "IP衍生类",
+"eg": "“评论区一堆小黑子在带节奏”",
+"k": [
+"小黑子"
+]
+},
+{
+"w": "开摆",
+"def": "放弃努力、直接摆烂",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“复习不动了，直接开摆”",
+"k": [
+"开摆"
+]
+},
+{
+"w": "buff叠满",
+"def": "各种有利或不利条件同时叠加",
+"lv": "L2",
+"cat": "个性表达类",
+"eg": "“早八、下雨、还断电，buff叠满”",
+"k": [
+"buff叠满",
+"Buff叠满",
+"BUFF叠满"
+]
+},
+{
+"w": "无痛当妈",
+"def": "云养猫狗或疼爱可爱角色，没有养育压力",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“云养猫让我实现无痛当妈”",
+"k": [
+"无痛当妈"
+]
+},
+{
+"w": "寄",
+"def": "谐音“寄了”，意思完蛋、失败，游戏圈发源",
+"lv": "L3",
+"cat": "情绪宣泄类",
+"eg": "“论文没保存，寄了”",
+"k": [
+"寄了"
+]
+},
+{
+"w": "破防了家人们",
+"def": "情绪被冲击，崩溃并向同伴寻求共情",
+"lv": "L1",
+"cat": "情绪宣泄类",
+"eg": "“破防了家人们，食堂又涨价”",
+"k": [
+"破防了家人们"
+]
+},
+{
+"w": "你是我的神",
+"def": "夸张表达极度佩服、感激",
+"lv": "L1",
+"cat": "IP衍生类",
+"eg": "“帮我带饭的室友，你是我的神”",
+"k": [
+"你是我的神"
+]
+},
+{
+"w": "选择性失忆",
+"def": "主动忘掉不想面对的烦心事",
+"lv": "L1",
+"cat": "个性表达类",
+"eg": "“对期末成绩选择性失忆”",
+"k": [
+"选择性失忆"
+]
+},
+{
+"w": "反向种草",
+"def": "看完介绍反而不想买、不感兴趣",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“看完测评反向种草，一点都不想买”",
+"k": [
+"反向种草"
+]
+},
+{
+"w": "菜鸡",
+"def": "自嘲水平差、技术不行",
+"lv": "L2",
+"cat": "社交调侃类",
+"eg": "“羽毛球菜鸡求带”",
+"k": [
+"菜鸡"
+]
+}
+];
+const BAD_DATA  = [
+{
+"w": "扎啤",
+"def": "由粗口谐音演变而来的辱骂用语，带明显的性侮辱意味，多用于骂人、嘲讽对方",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“评论区有人用‘扎啤’骂人，已经被举报了”",
+"k": [
+"扎啤"
+],
+"amb": true
+},
+{
+"w": "没马",
+"def": "“没妈”的谐音诅咒，用来诅咒对方家人，属于典型的人身攻击",
+"lv": "L1",
+"cat": "诅咒攻击类",
+"eg": "“别再用‘没马’这种词，听着不带脏字，其实一样伤人”",
+"k": [
+"没马"
+],
+"amb": true
+},
+{
+"w": "你马",
+"def": "“你妈”的谐音变体，常与攻击性词汇连用，用于对骂",
+"lv": "L1",
+"cat": "诅咒攻击类",
+"eg": "“游戏里刷‘你马’，对面直接点了举报”",
+"k": [
+"你马"
+],
+"amb": true
+},
+{
+"w": "唐/唐人",
+"def": "借“唐氏综合征”污名化他人，讽刺别人智力低、行为怪，是拿疾病当武器",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“‘你好唐人’不是玩笑，是在拿疾病侮辱同学”",
+"k": [
+"唐人"
+],
+"amb": true
+},
+{
+"w": "小唐人",
+"def": "“唐人”的缩小化称呼，表面亲昵，实际仍是疾病歧视",
+"lv": "L2",
+"cat": "歧视贬损类",
+"eg": "“班里有人被叫‘小唐人’，回家哭了一晚上”",
+"k": [
+"小唐人"
+],
+"amb": false
+},
+{
+"w": "真唐",
+"def": "用“唐”形容人或事离谱、愚蠢，同样是疾病污名化",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“别把‘真唐’挂嘴边，它伤的是真实存在的病患群体”",
+"k": [
+"真唐"
+],
+"amb": false
+},
+{
+"w": "伞兵",
+"def": "“傻×”的谐音，用来骂人蠢，是为了绕开审核的攻击词",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“群里一开口就是‘你个伞兵’，气氛立刻变差”",
+"k": [
+"伞兵"
+],
+"amb": false
+},
+{
+"w": "双肩包",
+"def": "“神经病”的谐音骂人话，把精神疾病当侮辱词",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“‘你个双肩包’听着像玩笑，其实就是骂人神经病”",
+"k": [
+"双肩包"
+],
+"amb": false
+},
+{
+"w": "老六",
+"def": "原指游戏里阴人的玩家，现泛化为贬称，指阴险、猥琐、不上台面的人",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“输了就骂队友‘老六’，很没风度”",
+"k": [
+"老六"
+],
+"amb": true
+},
+{
+"w": "食不食油饼",
+"def": "“是不是有病”的谐音，骂人生病、脑子有问题",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“拿‘食不食油饼’怼人，本质还是在骂人有病”",
+"k": [
+"食不食油饼"
+],
+"amb": false
+},
+{
+"w": "有猫饼",
+"def": "“有毛病”的谐音，讥讽对方不正常",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“‘你是不是有猫饼’这类谐音，说多了就成了口头攻击”",
+"k": [
+"有猫饼"
+],
+"amb": false
+},
+{
+"w": "睿智",
+"def": "反语用法，用褒义词暗指“弱智”，属于隐蔽的智力侮辱",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“夸人‘睿智’其实是在骂人，这种反语最伤人”",
+"k": [
+"睿智"
+],
+"amb": true
+},
+{
+"w": "小可爱",
+"def": "反语用法，表面夸奖，实际表达“可恨、可笑”，掩盖式侮辱",
+"lv": "L2",
+"cat": "反讽挑衅类",
+"eg": "“嘴上叫‘小可爱’，其实是在阴阳同学”",
+"k": [
+"小可爱"
+],
+"amb": true
+},
+{
+"w": "小卡拉米",
+"def": "贬低对方没分量、不值一提，用来否定别人的存在感",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“一句‘小卡拉米’就把别人的努力全否了”",
+"k": [
+"小卡拉米"
+],
+"amb": false
+},
+{
+"w": "老登",
+"def": "对年长者的不敬称呼，含轻蔑和戏弄，属代际歧视",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“对长辈喊‘老登’，不是幽默是没礼貌”",
+"k": [
+"老登"
+],
+"amb": false
+},
+{
+"w": "舔狗",
+"def": "贬称在感情里单方面讨好对方的人，把真诚贬成低价值",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“把认真喜欢别人的人叫‘舔狗’，很刻薄”",
+"k": [
+"舔狗"
+],
+"amb": false
+},
+{
+"w": "杠精",
+"def": "给人贴“专门抬杠”的标签，用来堵住不同意见",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“一有不同看法就扣‘杠精’帽子，等于不让人说话”",
+"k": [
+"杠精"
+],
+"amb": false
+},
+{
+"w": "屌丝",
+"def": "早期网络贬称，指出身、条件差的人，自带阶层歧视与低俗色彩",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“用‘屌丝’自嘲可以，拿来叫别人就变味了”",
+"k": [
+"屌丝"
+],
+"amb": false
+},
+{
+"w": "死肥宅",
+"def": "对身材与生活方式的双重侮辱，同时攻击外貌和爱好",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“‘死肥宅’三个字同时冒犯了身材和爱好”",
+"k": [
+"死肥宅"
+],
+"amb": false
+},
+{
+"w": "普信男",
+"def": "群体标签，讽刺“普通却自信”的男性，用标签代替了解",
+"lv": "L2",
+"cat": "歧视贬损类",
+"eg": "“把人归成‘普信男’，是拿标签代替了解”",
+"k": [
+"普信男"
+],
+"amb": true
+},
+{
+"w": "小仙女",
+"def": "原为褒义，被反向使用后成为讽刺女性的标签",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“现在说‘小仙女’多半是在讽刺，词义已经被玩坏了”",
+"k": [
+"小仙女"
+],
+"amb": true
+},
+{
+"w": "媛/佛媛/运动媛",
+"def": "在“媛”后加前缀，把女性的正常爱好污名化，暗示作秀、别有目的",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“‘运动媛’这种称呼，抹掉了别人真实的努力”",
+"k": [
+"佛媛",
+"运动媛",
+"病媛"
+],
+"amb": false
+},
+{
+"w": "绿茶",
+"def": "借饮品名贬损女性，暗示其虚伪、有心机",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“一句‘绿茶’，就把一个女生的人品定了性”",
+"k": [
+"绿茶"
+],
+"amb": false
+},
+{
+"w": "白莲花",
+"def": "贬称表面清纯、实则有心机的女性",
+"lv": "L1",
+"cat": "歧视贬损类",
+"eg": "“‘白莲花’这种词，专挑女性下手”",
+"k": [
+"白莲花"
+],
+"amb": false
+},
+{
+"w": "圣母",
+"def": "贬称有同理心、愿意宽容的人，把善意说成虚伪",
+"lv": "L2",
+"cat": "反讽挑衅类",
+"eg": "“劝人向善反被骂‘圣母’，善意成了错”",
+"k": [
+"圣母"
+],
+"amb": true
+},
+{
+"w": "娘炮",
+"def": "用性别气质贬损男性，固化性别刻板印象",
+"lv": "L2",
+"cat": "歧视贬损类",
+"eg": "“‘娘炮’这个词把性别偏见写在了脸上”",
+"k": [
+"娘炮"
+],
+"amb": false
+},
+{
+"w": "剩女",
+"def": "给未婚女性贴“被剩下”的年龄歧视标签",
+"lv": "L2",
+"cat": "歧视贬损类",
+"eg": "“‘剩女’两个字，把人生选择变成了贬义”",
+"k": [
+"剩女"
+],
+"amb": false
+},
+{
+"w": "土猪",
+"def": "贬称出身普通、家境一般的人，是赤裸裸的出身歧视",
+"lv": "L3",
+"cat": "歧视贬损类",
+"eg": "“把努力读书的人叫‘土猪’，是赤裸裸的出身歧视”",
+"k": [
+"土猪"
+],
+"amb": false
+},
+{
+"w": "小镇做题家",
+"def": "原为自嘲，常被拿来贬低只会应试、缺乏资源的普通学生",
+"lv": "L2",
+"cat": "歧视贬损类",
+"eg": "“‘小镇做题家’被拿来嘲讽时，否定了很多人的努力”",
+"k": [
+"小镇做题家"
+],
+"amb": false
+},
+{
+"w": "你咋不上天呢",
+"def": "反问式讥讽，嫌对方要求多、想得美，把沟通直接堵死",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“‘你咋不上天呢’一句话就把对话聊死了”",
+"k": [
+"你咋不上天呢"
+],
+"amb": false
+},
+{
+"w": "就这？",
+"def": "轻蔑否定，把对方的成果踩在脚下，属最低成本的贬低",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“别人辛苦做完，你回一句‘就这？’，很伤人”",
+"k": [
+"就这？"
+],
+"amb": true
+},
+{
+"w": "急了",
+"def": "用对方的情绪波动当把柄，居高临下地嘲弄，越吵越激化",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“吵不过就刷‘急了’，只会让对话更糟”",
+"k": [
+"急了"
+],
+"amb": false
+},
+{
+"w": "你在教我做事",
+"def": "拒绝沟通、贬低对方身份的挑衅句，把讨论变成对立",
+"lv": "L2",
+"cat": "反讽挑衅类",
+"eg": "“‘你在教我做事’一出，讨论就变成了吵架”",
+"k": [
+"你在教我做事"
+],
+"amb": false
+},
+{
+"w": "好好好，你说得都对",
+"def": "表面认同、实际敷衍的软性攻击，比直接反驳更让人难受",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“用‘你说得都对’阴阳人，对方会更憋屈”",
+"k": [
+"好好好，你说得都对",
+"你说得都对"
+],
+"amb": false
+},
+{
+"w": "受着呗",
+"def": "把别人的委屈当成理所当然，给伤害和霸凌找台阶",
+"lv": "L2",
+"cat": "反讽挑衅类",
+"eg": "“‘受着呗’三个字，等于给霸凌开了许可证”",
+"k": [
+"受着呗"
+],
+"amb": false
+},
+{
+"w": "那咋了",
+"def": "对他人痛苦满不在乎的甩锅式反问，消解别人的真实感受",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“‘那咋了’说出口，被伤害的人只会更委屈”",
+"k": [
+"那咋了"
+],
+"amb": false
+},
+{
+"w": "有被孝到",
+"def": "把“孝”解构成讽刺，拿来嘲弄他人的善意或家人",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“‘有被孝到’这种梗，把最严肃的亲情拿来开玩笑”",
+"k": [
+"有被孝到"
+],
+"amb": false
+},
+{
+"w": "孝子",
+"def": "反讽用法，指盲目维护某人的人，含明显侮辱意味",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“一维护偶像就被叫‘孝子’，讨论直接变骂战”",
+"k": [
+"孝子"
+],
+"amb": true
+},
+{
+"w": "典",
+"def": "单字点评，用“太典型了”暗示对方可笑、可鄙，是高效阴阳",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“评论区一句‘典’，等于把对方整个人否了”",
+"k": [
+"典中典",
+"太典了"
+],
+"amb": true
+},
+{
+"w": "小丑",
+"def": "贬称别人的认真或失败像笑话，最省事的贬低",
+"lv": "L1",
+"cat": "人身侮辱类",
+"eg": "“把认真表达的人叫‘小丑’，是很伤人的贬低”",
+"k": [
+"小丑"
+],
+"amb": false
+},
+{
+"w": "菜就多练",
+"def": "表面劝人练习，实则居高临下地嘲弄水平差",
+"lv": "L1",
+"cat": "反讽挑衅类",
+"eg": "“‘菜就多练’说出口，新手只会更不敢开口”",
+"k": [
+"菜就多练"
+],
+"amb": true
+},
+{
+"w": "建议重开/重开吧",
+"def": "用“人生重来”暗示对方不如去死，属黑暗诅咒",
+"lv": "L2",
+"cat": "诅咒攻击类",
+"eg": "“‘重开吧’这种话，本质是在劝人去死”",
+"k": [
+"建议重开",
+"重开吧",
+"重开"
+],
+"amb": false
+},
+{
+"w": "鸡你太美",
+"def": "源自对真人艺人的调侃，含低俗影射与人身嘲弄",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“‘鸡你太美’刷屏时，被嘲讽的是一个活生生的人”",
+"k": [
+"鸡你太美"
+],
+"amb": false
+},
+{
+"w": "只因",
+"def": "由“鸡你太美”衍生，用来指代该艺人并继续调侃",
+"lv": "L2",
+"cat": "人身侮辱类",
+"eg": "“用‘只因’代指真人，还是换了层皮的嘲弄”",
+"k": [
+"只因"
+],
+"amb": true
+},
+{
+"w": "giao/一给我里giaogiao",
+"def": "无意义怪叫式口头禅，靠噪音和猎奇博眼球",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“‘giao’喊多了，说话就只剩下噪音”",
+"k": [
+"一给我里giaogiao",
+"giao"
+],
+"amb": false
+},
+{
+"w": "91",
+"def": "色情网站的代称，属黄梗擦边，拿低俗当潮流",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“拿‘91’当暗号玩梗，本质是在传播黄色内容”",
+"k": [
+"91"
+],
+"amb": true
+},
+{
+"w": "78",
+"def": "由脏话谐音而来，带强烈侮辱性，专用于骂人",
+"lv": "L3",
+"cat": "低俗恶俗类",
+"eg": "“‘78’这种数字谐音，是躲审核的脏话”",
+"k": [
+"78"
+],
+"amb": true
+},
+{
+"w": "尼玛",
+"def": "脏话谐音，带冒犯性，已固化成为口头粗口",
+"lv": "L1",
+"cat": "低俗恶俗类",
+"eg": "“‘尼玛’挂嘴边，听着就是粗口”",
+"k": [
+"尼玛"
+],
+"amb": false
+},
+{
+"w": "我测你码",
+"def": "以谐音包装的粗口攻击，绕开审核但没绕开冒犯",
+"lv": "L3",
+"cat": "低俗恶俗类",
+"eg": "“‘我测你码’这类谐音粗口，本质上还是骂人”",
+"k": [
+"我测你码"
+],
+"amb": false
+},
+{
+"w": "NMSL",
+"def": "脏话缩写，起源于网络对骂，攻击性极强",
+"lv": "L1",
+"cat": "低俗恶俗类",
+"eg": "“弹幕刷‘NMSL’，是纯纯的对骂”",
+"k": [
+"NMSL"
+],
+"amb": false
+},
+{
+"w": "大香蕉",
+"def": "带性暗示的恶俗口头梗，很多使用者并不知情",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“‘大香蕉’式口头梗，很多孩子根本不知道含义”",
+"k": [
+"大香蕉"
+],
+"amb": true
+},
+{
+"w": "蓝色妖姬切尔西",
+"def": "无意义拼贴恶搞梗，常与低俗二创绑定传播",
+"lv": "L3",
+"cat": "低俗恶俗类",
+"eg": "“‘蓝色妖姬切尔西’这类无意义梗，火了只剩尴尬”",
+"k": [
+"蓝色妖姬切尔西"
+],
+"amb": false
+},
+{
+"w": "阿姨我不想努力了",
+"def": "影射被包养的功利关系，属低俗擦边，宣扬走捷径",
+"lv": "L2",
+"cat": "低俗恶俗类",
+"eg": "“‘阿姨我不想努力了’被当玩笑，实则宣扬走捷径”",
+"k": [
+"阿姨我不想努力了"
+],
+"amb": false
+},
+{
+"w": "电摇",
+"def": "挑衅性肢体动作梗，配合鬼畜节奏对他人进行冒犯性挑衅",
+"lv": "L3",
+"cat": "反讽挑衅类",
+"eg": "“‘电摇’对着同学做，很容易引发冲突”",
+"k": [
+"电摇"
+],
+"amb": false
+},
+{
+"w": "筷子夹水泥",
+"def": "源自真实虐待凶案，把受害者的死亡当成脏话到处传播",
+"lv": "L3",
+"cat": "消费悲剧类",
+"eg": "“‘筷子夹水泥’背后是一条人命，不该被玩成梗”",
+"k": [
+"筷子夹水泥"
+],
+"amb": false
+},
+{
+"w": "化粪池警告",
+"def": "源自杀妻案，被用作对女性的威胁性玩笑",
+"lv": "L2",
+"cat": "消费悲剧类",
+"eg": "“‘化粪池警告’不是梗，是把暴力威胁日常化”",
+"k": [
+"化粪池警告"
+],
+"amb": false
+},
+{
+"w": "两吨水",
+"def": "同上案件的暗语，含明显的暴力暗示",
+"lv": "L2",
+"cat": "消费悲剧类",
+"eg": "“拿‘两吨水’开玩笑，等于消费受害者的死”",
+"k": [
+"两吨水"
+],
+"amb": false
+},
+{
+"w": "人血馒头",
+"def": "借他人不幸博流量、赚好处，把悲剧当生意",
+"lv": "L2",
+"cat": "消费悲剧类",
+"eg": "“事故刚发生就有人直播带货，典型的吃人血馒头”",
+"k": [
+"人血馒头"
+],
+"amb": false
+},
+{
+"w": "骨灰拌饭",
+"def": "恶毒诅咒，拿死亡和逝者做侮辱性梗",
+"lv": "L3",
+"cat": "诅咒攻击类",
+"eg": "“‘骨灰拌饭’这种话，恶劣程度已经超出玩梗”",
+"k": [
+"骨灰拌饭"
+],
+"amb": false
+},
+{
+"w": "坟头蹦迪",
+"def": "拿逝者与丧事开玩笑的诅咒句，极度不尊重",
+"lv": "L3",
+"cat": "诅咒攻击类",
+"eg": "“‘坟头蹦迪’听着像玩笑，实则是在诅咒别人”",
+"k": [
+"坟头蹦迪"
+],
+"amb": false
+},
+{
+"w": "祝你全家",
+"def": "半截式诅咒，后面接的内容都是恶毒祝愿",
+"lv": "L2",
+"cat": "诅咒攻击类",
+"eg": "“‘祝你全家’这类话，起手就是恶毒诅咒”",
+"k": [
+"祝你全家"
+],
+"amb": false
+}
+];
+
+/* ===== 建立词条索引 ===== */
+const TERMS = [];
+function addTerms(item, type){
+  (item.k || [item.w]).forEach(t=>{ if(t && t.length) TERMS.push({t:t, type:type, item:item}); });
+}
+GOOD_DATA.forEach(it=>addTerms(it,"good"));
+BAD_DATA.forEach(it=>addTerms(it,"bad"));
+TERMS.sort((a,b)=>b.t.length-a.t.length);
+
+
+/* ===== 文本扫描 ===== */
+function scanText(text){
+  const hits = [], seen = new Set();
+  let i = 0;
+  const marks = [];
+  while(i < text.length){
+    let found = null;
+    for(const t of TERMS){
+      if(text.startsWith(t.t, i)){ found = t; break; }
+    }
+    if(found){
+      marks.push({start:i, end:i+found.t.length, type:found.type});
+      const key = found.item.w;
+      if(!seen.has(key)){ seen.add(key); hits.push(found); }
+      i += found.t.length;
+    } else {
+      i += 1;
+    }
+  }
+  return {hits:hits, marks:marks};
+}
+
+function esc(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ===== 渲染结果 ===== */
+const $ = id=>document.getElementById(id);
+
+function render(record){
+  const text = $("input").value.trim();
+  const box = $("result");
+  if(!text){ box.className="result"; box.innerHTML=""; return; }
+
+  const {hits, marks} = scanText(text);
+
+  /* 原文高亮 */
+  let html = "", pos = 0;
+  marks.forEach(m=>{
+    html += esc(text.slice(pos, m.start));
+    const cls = m.type==="bad" ? "bad" : "good";
+    html += '<span class="mk '+cls+'">'+esc(text.slice(m.start,m.end))+'</span>';
+    pos = m.end;
+  });
+  html += esc(text.slice(pos));
+
+  const badHits = hits.filter(h=>h.type==="bad");
+  const goodHits = hits.filter(h=>h.type==="good");
+
+  let out = '<div class="sentence">'+html+'</div>';
+  out += '<div class="sum-bar">';
+  out += '<span class="chip bad">不良烂梗 '+badHits.length+' 处</span>';
+  out += '<span class="chip good">规范热梗 '+goodHits.length+' 处</span>';
+  out += '</div>';
+
+  if(hits.length === 0){
+    out += '<div class="empty">没有识别到词库里的梗，语言干净得像刚洗过。</div>';
+  } else {
+    out += '<div class="hits">';
+    hits.forEach(h=>{
+      const it = h.item;
+      const cls = h.type==="bad" ? "bad" : "good";
+      const amb = (h.type==="bad" && it.amb);
+      out += '<div class="hit '+cls+'">'
+        + '<div class="hit-top"><h3>'+esc(it.w)+'</h3>'
+        + '<span class="tag '+cls+'">'+(h.type==="bad"?"烂梗":"热梗")+'</span>'
+        + '<span class="tag lv">'+esc(it.lv)+'</span>'
+        + '<span class="tag lv">'+esc(it.cat)+'</span></div>'
+        + '<p><b>释义：</b>'+esc(it.def)+'</p>'
+        + '<p class="eg">例：'+esc(it.eg)+'</p>'
+        + (amb ? '<p style="color:#b06a20"><b>语境提示：</b>该词本身可能用于正常表达，请结合上下文判断。</p>' : '')
+        + '</div>';
+    });
+    out += '</div>';
+  }
+
+  if(badHits.length){
+    out += '<div class="warnbox">检测到 '+badHits.length+' 处不良烂梗：「'+badHits.map(h=>esc(h.item.w)).join("、")
+      + '」。这些词带有侮辱、诅咒、低俗或歧视意味，建议换成更规范的表达。</div>';
+  }
+
+  box.className = "result on";
+  box.innerHTML = out;
+
+  if(badHits.length){
+    showAlarm(badHits, goodHits.length);
+    if(record) bumpCounter(1);
+  }
+}
+
+/* ===== 弹窗 ===== */
+let blockedTotal = 0;
+function showAlarm(badHits, goodCount){
+  $("alarmSub").textContent = "这段文字里有 "+badHits.length+" 处不良烂梗"+(goodCount?"，另有 "+goodCount+" 处正常热梗不受影响":"")+"。";
+  $("alarmList").innerHTML = badHits.map(h=>
+    '<div><b>'+esc(h.item.w)+'</b>（'+esc(h.item.cat)+'）：'+esc(h.item.def)+'</div>'
+  ).join("");
+  $("mask").classList.add("on");
+}
+function hideAlarm(){ $("mask").classList.remove("on"); }
+
+function bumpCounter(n){
+  blockedTotal += n;
+  $("statBlocked").textContent = blockedTotal;
+}
+
+
+/* ===== 词库渲染 ===== */
+let sheet = "good";
+function renderGrid(){
+  const q = $("q").value.trim().toLowerCase();
+  const data = sheet==="good" ? GOOD_DATA : BAD_DATA;
+  const list = data.filter(it=>{
+    if(!q) return true;
+    return (it.w+" "+it.def+" "+it.cat+" "+it.lv+" "+it.eg).toLowerCase().indexOf(q)>=0;
+  });
+  $("count").textContent = "共 "+list.length+" 条"+(q?"（含关键词“"+q+"”）":"");
+  $("grid").innerHTML = list.map(it=>
+    '<div class="item '+(sheet==="bad"?"isbad":"")+'">'
+    + '<div class="w">'+esc(it.w)+'</div>'
+    + '<div class="meta"><i>'+esc(it.lv)+'</i> · '+esc(it.cat)+'</div>'
+    + '<div class="d">'+esc(it.def)+'</div>'
+    + '<div class="e">例：'+esc(it.eg)+'</div>'
+    + '</div>'
+  ).join("") || '<div class="empty" style="grid-column:1/-1">没有找到匹配的词条。</div>';
+}
+
+/* ===== 事件 ===== */
+$("scan").addEventListener("click", ()=>render(true));
+$("clear").addEventListener("click", ()=>{ $("input").value=""; $("result").className="result"; $("result").innerHTML=""; });
+$("demo").addEventListener("click", ()=>{
+  $("input").value = "这波操作YYDS，绝绝子！可评论区有人刷“没马”“你个伞兵”，还有人拿“唐人”嘲同学，看着真下头。";
+  render(true);
+});
+$("closeAlarm").addEventListener("click", hideAlarm);
+$("alarmOk").addEventListener("click", hideAlarm);
+$("mask").addEventListener("click", e=>{ if(e.target===$("mask")) hideAlarm(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") hideAlarm(); });
+
+$("q").addEventListener("input", renderGrid);
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    sheet = btn.dataset.sheet;
+    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on", b===btn));
+    renderGrid();
+  });
+});
+
+/* 边输边检（防抖） */
+let timer = null;
+$("input").addEventListener("input", ()=>{
+  clearTimeout(timer);
+  timer = setTimeout(()=>{
+    const v = $("input").value.trim();
+    if(v.length >= 2) render(false); else { $("result").className="result"; $("result").innerHTML=""; }
+  }, 420);
+});
+
+/* 初始化 */
+$("statGood").textContent = GOOD_DATA.length;
+$("statBad").textContent = BAD_DATA.length;
+$("statBlocked").textContent = "0";
+renderGrid();
+</script>
+</body>
+</html>
